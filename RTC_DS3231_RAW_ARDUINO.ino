@@ -39,7 +39,7 @@ void loop()
     showData(((mArr[m] >> 4) | 0x30), 2, n++);
     showData(((mArr[m] & 0x0F) | 0x30), 2, n++);
     if (n < 11)
-      showData(':', 2, n++);
+      showData('/', 2, n++);
   }
 
   showData(dayOfWeek[mArr[3] - 1], 2, 12);
