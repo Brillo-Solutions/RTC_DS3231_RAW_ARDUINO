@@ -11,7 +11,6 @@ void setup()
   Wire.begin();
   setBackLight(true);
   initDisplay();
-  setRtc();
 }
 
 void loop() 
@@ -126,9 +125,4 @@ void setBackLight(boolean mBool)
     backLight = 0x08;  // Turn ON backlight of LCD
   else
     backLight = 0x00;  // Turn OFF backlight of LCD
-}
-
-void setRtc()
-{
-  
 }
