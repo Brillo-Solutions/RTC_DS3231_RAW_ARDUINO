@@ -85,7 +85,7 @@ void initDisplay()
     brkInstByte(mArr[k]);  // Send 8-bit LCD commands in 4-bit mode
 
   showData("--:--:--", 1, 5);
-  showData("--:--:-- ---", 2, 3);
+  showData("--/--/-- ---", 2, 3);
 }
 
 void showData(const char *p, byte rn, byte cp)
