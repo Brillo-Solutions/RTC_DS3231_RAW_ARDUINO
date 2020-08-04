@@ -9,7 +9,7 @@ const char *dayOfWeek[7] = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"}; //
 void setup() 
 {
   Wire.begin();
-  setRtc(); // Uncomment this line if you want to set RTC date & time  
+//   setRtc(); // Uncomment this line if you want to set RTC date & time  
   setBackLight(true);
   initDisplay();
 }
