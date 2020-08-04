@@ -1,14 +1,15 @@
 #include <Wire.h>
 #define DEV_ADDR_RTC 0x68 // I2C address of RTC - DS3231
-#define DEV_ADDR_LCD 0x3F // I2C address of PCF8574A extender
+#define DEV_ADDR_LCD 0x20 // I2C address of PCF8574A extender
 
 byte mByte, mArr[7];
-byte backLight;
+byte backLight, nArr[7] = {0, 30, 15, 2, 4, 8, 20}; // set your time here (Seconds, Minutes, Hour, Day, Date, Month, Year)
 const char *dayOfWeek[7] = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"}; // Array of pointers containing days of week
 
 void setup() 
 {
   Wire.begin();
+  setRtc(); // Uncomment this line if you want to set RTC date & time  
   setBackLight(true);
   initDisplay();
 }
@@ -125,4 +126,15 @@ void setBackLight(boolean mBool)
     backLight = 0x08;  // Turn ON backlight of LCD
   else
     backLight = 0x00;  // Turn OFF backlight of LCD
+}
+
+void setRtc()
+{
+  for (int k = 0; k < 7; k++)
+  {
+    Wire.beginTransmission(DEV_ADDR_RTC);
+    Wire.write(k);  // Set base resiter address to 0h (Seconds)
+    Wire.write((nArr[k] / 10 * 16) + (nArr[k] % 10)); // Decimal to Hexadecimal (BCD)
+    Wire.endTransmission();
+  }
 }
