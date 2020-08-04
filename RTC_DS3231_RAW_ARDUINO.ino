@@ -1,20 +1,28 @@
 #include <Wire.h>
 #define DEV_ADDR_RTC 0x68 // I2C address of RTC - DS3231
-#define DEV_ADDR_LCD 0x20 // I2C address of PCF8574A extender
+#define DEV_ADDR_LCD 0x3F // I2C address of PCF8574A extender
 
 byte mByte, mArr[7];
-byte backLight, nArr[7] = {0, 30, 15, 2, 4, 8, 20}; // set your time here (Seconds, Minutes, Hour, Day, Date, Month, Year)
+byte backLight, nArr[7] = {0, 30, 16, 2, 4, 8, 20}; // Set your time here (Seconds, Minutes, Hour, Day, Date, Month, Year)
 const char *dayOfWeek[7] = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"}; // Array of pointers containing days of week
 
 void setup() 
 {
   Wire.begin();
-//   setRtc(); // Uncomment this line if you want to set RTC date & time  
+//  setRtc(); // Call this function if you want to set RTC date & time    
   setBackLight(true);
   initDisplay();
 }
 
 void loop() 
+{
+  readRtc();
+  showTime();
+  showDate();
+  showDayOfWeek();
+}
+
+void readRtc()
 {
   Wire.beginTransmission(DEV_ADDR_RTC);
   Wire.write(0);  // Set base resiter address to 0h (Seconds)
@@ -26,7 +34,10 @@ void loop()
     mByte = Wire.read();
     mArr[k] = mByte;
   }
+}
 
+void showTime()
+{
   for (int m = 0, n = 12; m < 3; m++) // Showing time on 1st row of 16x2 LCD
   {
     showData(((mArr[m] & 0x0F) | 0x30), 1, n--);
@@ -34,7 +45,10 @@ void loop()
     if (n > 4)
       showData(':', 1, n--);
   }
+}
 
+void showDate()
+{
   for (int m = 4, n = 3; m < 7; m++)  // Showing date on 2nd row of 16x2 LCD
   {
     showData(((mArr[m] >> 4) | 0x30), 2, n++);
@@ -42,7 +56,10 @@ void loop()
     if (n < 11)
       showData('/', 2, n++);
   }
+}
 
+void showDayOfWeek()
+{
   showData(dayOfWeek[mArr[3] - 1], 2, 12);
 }
 
