@@ -10,7 +10,7 @@ void setup()
 {
   Wire.begin();
 //  setRtc(); // Call this function if you want to set RTC date & time    
-  setBackLight(true);
+  setBackLight(false);
   initDisplay();
 }
 
@@ -20,12 +20,13 @@ void loop()
   showTime();
   showDate();
   showDayOfWeek();
+  showTemperature(); 
 }
 
 void readRtc()
 {
   Wire.beginTransmission(DEV_ADDR_RTC);
-  Wire.write(0);  // Set base resiter address to 0h (Seconds)
+  Wire.write(0);  // Set base register address to 0h (Seconds)
   Wire.endTransmission();
   Wire.requestFrom(DEV_ADDR_RTC, 7);  // Seconds, Minutes, Hour, Day, Date, Month, Year
 
@@ -36,13 +37,41 @@ void readRtc()
   }
 }
 
+void showTemperature()
+{
+  Wire.beginTransmission(DEV_ADDR_RTC);
+  Wire.write(0x0E);
+  Wire.endTransmission();
+  Wire.requestFrom(DEV_ADDR_RTC, 1);
+  
+  mByte = Wire.read();
+  mByte |= 0x20;  // Setting CONV bit of 0x0E register to convert the temperature
+
+  Wire.beginTransmission(DEV_ADDR_RTC);
+  Wire.write(0x0E);
+  Wire.write(mByte);
+  Wire.endTransmission();
+
+  Wire.beginTransmission(DEV_ADDR_RTC);
+  Wire.write(0x11); // Temperature value register
+  Wire.endTransmission();
+  Wire.requestFrom(DEV_ADDR_RTC, 1);
+
+  mByte = Wire.read();
+  mByte = (mByte / 10 * 16) + (mByte % 10); // Decimal to Hexadecimal (BCD)
+
+  showData(((mByte >> 4) | 0x30), 1, 12);
+  showData(((mByte & 0x0F) | 0x30), 1, 13);
+  showData("\337", 1, 14);
+}
+
 void showTime()
 {
-  for (int m = 0, n = 12; m < 3; m++) // Showing time on 1st row of 16x2 LCD
+  for (int m = 0, n = 10; m < 3; m++) // Showing time on 1st row of 16x2 LCD
   {
     showData(((mArr[m] & 0x0F) | 0x30), 1, n--);
     showData(((mArr[m] >> 4) | 0x30), 1, n--);
-    if (n > 4)
+    if (n > 2)
       showData(':', 1, n--);
   }
 }
@@ -102,7 +131,7 @@ void initDisplay()
   for (int k = 0; k < 4; k++)
     brkInstByte(mArr[k]);  // Send 8-bit LCD commands in 4-bit mode
 
-  showData("--:--:--", 1, 5);
+  showData("--:--:-- ---", 1, 3);
   showData("--/--/-- ---", 2, 3);
 }
 
@@ -150,7 +179,7 @@ void setRtc()
   for (int k = 0; k < 7; k++)
   {
     Wire.beginTransmission(DEV_ADDR_RTC);
-    Wire.write(k);  // Set base resiter address to 0h (Seconds)
+    Wire.write(k);  // Set base register address to 0h (Seconds)
     Wire.write((nArr[k] / 10 * 16) + (nArr[k] % 10)); // Decimal to Hexadecimal (BCD)
     Wire.endTransmission();
   }
