@@ -25,7 +25,7 @@ void loop()
 void readRtc()
 {
   Wire.beginTransmission(DEV_ADDR_RTC);
-  Wire.write(0);  // Set base resiter address to 0h (Seconds)
+  Wire.write(0);  // Set base register address to 0h (Seconds)
   Wire.endTransmission();
   Wire.requestFrom(DEV_ADDR_RTC, 7);  // Seconds, Minutes, Hour, Day, Date, Month, Year
 
@@ -150,7 +150,7 @@ void setRtc()
   for (int k = 0; k < 7; k++)
   {
     Wire.beginTransmission(DEV_ADDR_RTC);
-    Wire.write(k);  // Set base resiter address to 0h (Seconds)
+    Wire.write(k);  // Set base register address to 0h (Seconds)
     Wire.write((nArr[k] / 10 * 16) + (nArr[k] % 10)); // Decimal to Hexadecimal (BCD)
     Wire.endTransmission();
   }
