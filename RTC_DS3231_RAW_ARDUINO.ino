@@ -1,6 +1,6 @@
 #include <Wire.h>
 #define DEV_ADDR_RTC 0x68 // I2C address of RTC - DS3231
-#define DEV_ADDR_LCD 0x3F // I2C address of PCF8574A extender
+#define DEV_ADDR_LCD 0x20 // I2C address of PCF8574A extender
 
 byte mByte, mArr[7];
 byte backLight, nArr[7] = {0, 30, 16, 2, 4, 8, 20}; // Set your time here (Seconds, Minutes, Hour, Day, Date, Month, Year)
@@ -10,6 +10,7 @@ void setup()
 {
   Wire.begin();
 //  setRtc(); // Call this function if you want to set RTC date & time    
+//  setAlarm(19, 23, 59); // Hour, Minutes and Seconds - call this function if you want to set alarm ON time
   setBackLight(false);
   initDisplay();
 }
@@ -20,7 +21,7 @@ void loop()
   showTime();
   showDate();
   showDayOfWeek();
-  showTemperature(); 
+  showTemperature();
 }
 
 void readRtc()
@@ -181,6 +182,73 @@ void setRtc()
     Wire.beginTransmission(DEV_ADDR_RTC);
     Wire.write(k);  // Set base register address to 0h (Seconds)
     Wire.write((nArr[k] / 10 * 16) + (nArr[k] % 10)); // Decimal to Hexadecimal (BCD)
+    Wire.endTransmission();
+  }
+}
+
+void setAlarm(byte hByte, byte mByte, byte sByte)
+{
+  Wire.beginTransmission(DEV_ADDR_RTC);
+  Wire.write(0x07); // Alarm second setting
+  Wire.write((sByte / 10 * 16) + (sByte % 10));
+  Wire.endTransmission();
+  
+  Wire.beginTransmission(DEV_ADDR_RTC);
+  Wire.write(0x08); // Alarm minute setting
+  Wire.write((mByte / 10 * 16) + (mByte % 10));
+  Wire.endTransmission();
+  
+  Wire.beginTransmission(DEV_ADDR_RTC);
+  Wire.write(0x09); // Alarm hour setting
+  Wire.write((hByte / 10 * 16) + (hByte % 10));
+  Wire.endTransmission();
+  
+  onAlarm();
+}
+
+void onAlarm()
+{
+  Wire.beginTransmission(DEV_ADDR_RTC);
+  Wire.write(0x0A); // Alarm second, minute and hour mask bit setting
+  Wire.write(0x80);
+  Wire.endTransmission();
+  
+  Wire.beginTransmission(DEV_ADDR_RTC);
+  Wire.write(0x0E); // Reading control register content to set alarm - 1
+  Wire.endTransmission();
+  Wire.requestFrom(DEV_ADDR_RTC, 1);
+  
+  mByte = Wire.read();
+  mByte |= 0x01;  // Setting A1IE bit of 0x0E register to enable alarm - 1
+
+  Wire.beginTransmission(DEV_ADDR_RTC);
+  Wire.write(0x0E);  // Writing A1IE bit setting back to control register
+  Wire.write(mByte);
+  Wire.endTransmission();
+}
+
+void offAlarm()
+{
+  Wire.beginTransmission(DEV_ADDR_RTC);
+  Wire.write(0x0F); // Reading content of status register
+  Wire.endTransmission();
+  Wire.requestFrom(DEV_ADDR_RTC, 1);
+  
+  mByte = Wire.read();
+
+  if (mByte & 0x01 == 0x01) // Monitoring A1F alarm - 1 flag to be set in 0x0F register
+  {
+    Wire.beginTransmission(DEV_ADDR_RTC);
+    Wire.write(0x0F); // Reading control register content to set alarm - 1
+    Wire.endTransmission();
+    Wire.requestFrom(DEV_ADDR_RTC, 1);
+    
+    mByte = Wire.read();
+    mByte &= 0xFE;
+    
+    Wire.beginTransmission(DEV_ADDR_RTC);
+    Wire.write(0x0F);  
+    Wire.write(mByte);  // Writing A1IE bit setting back to control register
     Wire.endTransmission();
   }
 }
