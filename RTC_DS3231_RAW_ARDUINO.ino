@@ -3,8 +3,8 @@
 #define DEV_ADDR_LCD 0x20 // I2C address of PCF8574A extender
 
 byte mByte, mArr[7];
-byte backLight, nArr[7] = {0, 30, 16, 2, 4, 8, 20}; // Set your time here (Seconds, Minutes, Hour, Day, Date, Month, Year)
-const char *dayOfWeek[7] = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"}; // Array of pointers containing days of week
+byte backLight, nArr[7] = {0, 30, 16, 7, 4, 8, 20}; // Set your time here (Seconds, Minutes, Hour, Day, Date, Month, Year)
+const char *dayOfWeek[7] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"}; // Array of pointers containing days of week
 
 void setup() 
 {
@@ -177,13 +177,12 @@ void setBackLight(boolean mBool)
 
 void setRtc()
 {
-  for (int k = 0; k < 7; k++)
-  {
-    Wire.beginTransmission(DEV_ADDR_RTC);
-    Wire.write(k);  // Set base register address to 0h (Seconds)
-    Wire.write((nArr[k] / 10 * 16) + (nArr[k] % 10)); // Decimal to Hexadecimal (BCD)
-    Wire.endTransmission();
-  }
+  Wire.beginTransmission(DEV_ADDR_RTC);
+  Wire.write(0);  // Set base register address to 0h (Seconds)
+    for (int k = 0; k < 7; k++)
+      Wire.write((nArr[k] / 10 * 16) + (nArr[k] % 10)); // Decimal to Hexadecimal (BCD)
+
+  Wire.endTransmission();
 }
 
 void setAlarm(byte hByte, byte mByte, byte sByte)
